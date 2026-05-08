@@ -1,0 +1,2311 @@
+<!doctype html>\n<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thesis Writing Simulator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #5a6877;
+      --paper: #f7f6f1;
+      --panel: #ffffff;
+      --line: #d8d8d2;
+      --line-strong: #b9b9b0;
+      --blue: #2e6da4;
+      --blue-dark: #1e4f7c;
+      --green: #2f7d5f;
+      --yellow: #b98318;
+      --red: #b14242;
+      --teal: #2c7f86;
+      --violet: #7259a8;
+      --shadow: 0 18px 38px rgba(31, 42, 55, 0.14);
+      --radius: 8px;
+      --focus: 0 0 0 3px rgba(46, 109, 164, 0.22);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(247, 246, 241, 0.9)),
+        repeating-linear-gradient(90deg, rgba(23, 33, 43, 0.035) 0 1px, transparent 1px 88px),
+        var(--paper);
+      color: var(--ink);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      border-radius: var(--radius);
+    }
+
+    button {
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+    }
+
+    button:hover {
+      border-color: var(--blue);
+      box-shadow: 0 5px 16px rgba(46, 109, 164, 0.14);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+      border-color: var(--blue);
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+    }
+
+    .topbar-inner {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: grid;
+      grid-template-columns: minmax(230px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .field-inline {
+      display: grid;
+      gap: 4px;
+    }
+
+    .field-inline label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 760;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .select,
+    .input,
+    .textarea {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .select,
+    .input {
+      min-height: 42px;
+      padding: 9px 12px;
+    }
+
+    .select {
+      padding-right: 36px;
+    }
+
+    .textarea {
+      min-height: 116px;
+      padding: 12px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      position: relative;
+    }
+
+    .icon-btn svg,
+    .mini-icon {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .icon-btn::after {
+      content: attr(aria-label);
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: max-content;
+      max-width: 220px;
+      white-space: nowrap;
+      background: #17212b;
+      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-3px);
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .icon-btn:hover::after,
+    .icon-btn:focus-visible::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    main {
+      width: min(1420px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: minmax(320px, 390px) minmax(420px, 1fr) minmax(310px, 360px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 7px 22px rgba(23, 33, 43, 0.08);
+      min-width: 0;
+    }
+
+    .panel-header {
+      padding: 15px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .panel-header p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 0.88rem;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 13px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 0.86rem;
+      font-weight: 760;
+      line-height: 1.25;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.38;
+    }
+
+    .template-rail {
+      display: grid;
+      gap: 9px;
+    }
+
+    .part {
+      border: 1px solid var(--line);
+      background: #fbfbf8;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .part summary {
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 9px;
+      align-items: center;
+      padding: 9px 10px;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 760;
+    }
+
+    .part summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .part summary .number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.78rem;
+    }
+
+    .part summary .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--line-strong);
+    }
+
+    .part[data-ready="true"] summary .status-dot {
+      background: var(--green);
+    }
+
+    .part-content {
+      padding: 0 10px 10px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .reason-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .quiet-btn,
+    .chip {
+      min-height: 40px;
+      padding: 9px 12px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.1;
+    }
+
+    .primary-btn {
+      border-color: var(--blue-dark);
+      background: var(--blue);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .primary-btn:hover {
+      background: var(--blue-dark);
+      border-color: var(--blue-dark);
+    }
+
+    .secondary-btn {
+      font-weight: 760;
+      background: #fff;
+    }
+
+    .quiet-btn {
+      border-color: transparent;
+      background: transparent;
+      color: var(--blue-dark);
+      font-weight: 760;
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+
+    .quiet-btn:hover {
+      background: rgba(46, 109, 164, 0.08);
+      box-shadow: none;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .segmented button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font-weight: 760;
+    }
+
+    .segmented button[aria-pressed="true"] {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 16px;
+    }
+
+    .builder-visual {
+      min-height: 118px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, rgba(46, 109, 164, 0.1), transparent 36%),
+        #fbfbf8;
+      border-radius: var(--radius);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .formula {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .formula-card {
+      min-height: 78px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 9px;
+      display: grid;
+      gap: 5px;
+      align-content: start;
+      position: relative;
+    }
+
+    .formula-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      border-radius: 8px 0 0 8px;
+      background: var(--card-color);
+    }
+
+    .formula-card b {
+      display: block;
+      font-size: 0.78rem;
+      padding-left: 4px;
+    }
+
+    .formula-card span {
+      padding-left: 4px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      line-height: 1.24;
+    }
+
+    .thesis-editor {
+      display: grid;
+      gap: 10px;
+    }
+
+    .editor-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .output-box {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      min-height: 78px;
+      padding: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      color: var(--ink);
+    }
+
+    .output-box.empty {
+      color: var(--muted);
+    }
+
+    .coach-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .coach-card {
+      min-height: 116px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+      align-content: start;
+      text-align: left;
+    }
+
+    .coach-card.needs-repair {
+      border-color: rgba(177, 66, 66, 0.62);
+      background: #fff6f6;
+    }
+
+    .coach-card.looks-ok {
+      border-color: rgba(47, 125, 95, 0.55);
+      background: #f5fbf7;
+    }
+
+    .coach-card.neutral {
+      background: #fff;
+    }
+
+    .coach-card strong {
+      font-size: 0.87rem;
+      line-height: 1.18;
+    }
+
+    .coach-card span {
+      color: var(--muted);
+      font-size: 0.77rem;
+      line-height: 1.25;
+    }
+
+    .coach-card .status-text {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+      font-weight: 820;
+    }
+
+    .coach-card.active {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(46, 109, 164, 0.13);
+    }
+
+    .feedback {
+      display: grid;
+      gap: 16px;
+    }
+
+    .score-wrap {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .score-ring {
+      --score: 0%;
+      width: 112px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 60%, transparent 61%),
+        conic-gradient(var(--score-color, var(--blue)) var(--score), #e8e8e2 0);
+      border: 1px solid var(--line);
+    }
+
+    .score-ring strong {
+      display: block;
+      font-size: 1.55rem;
+      line-height: 1;
+    }
+
+    .score-ring span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: center;
+      margin-top: 3px;
+    }
+
+    .rating-title {
+      margin: 0;
+      font-size: 1.03rem;
+      line-height: 1.24;
+    }
+
+    .next-step {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 0.88rem;
+    }
+
+    .meter-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .meter-row {
+      display: grid;
+      gap: 5px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 760;
+    }
+
+    .meter {
+      height: 9px;
+      border-radius: 999px;
+      background: #e9e9e3;
+      overflow: hidden;
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--blue);
+      border-radius: inherit;
+      transition: width 260ms ease, background 260ms ease;
+    }
+
+    .feedback-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .feedback-item {
+      border: 1px solid var(--line);
+      background: #fbfbf8;
+      border-radius: var(--radius);
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 9px;
+      align-items: start;
+      line-height: 1.34;
+      font-size: 0.86rem;
+    }
+
+    .badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--line-strong);
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.78rem;
+      flex: 0 0 auto;
+    }
+
+    .feedback-item.good .badge {
+      background: var(--green);
+    }
+
+    .feedback-item.warn .badge {
+      background: var(--yellow);
+    }
+
+    .feedback-item.bad .badge {
+      background: var(--red);
+    }
+
+    .roadmap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .roadmap-row {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      gap: 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 9px;
+      min-height: 48px;
+    }
+
+    .roadmap-row b {
+      color: var(--blue-dark);
+      font-size: 0.82rem;
+    }
+
+    .roadmap-row span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(23, 33, 43, 0.48);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(680px, 100%);
+      max-height: min(760px, 90vh);
+      overflow: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .modal header {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .modal .content {
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+      line-height: 1.45;
+    }
+
+    .mini-table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 8px;
+      border: 1px solid var(--line);
+      padding: 9px;
+      border-radius: var(--radius);
+      background: #fbfbf8;
+    }
+
+    .mini-row b {
+      font-size: 0.84rem;
+      color: var(--blue-dark);
+    }
+
+    .mini-row span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .chip {
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 0.8rem;
+      border-color: var(--line);
+      background: #fbfbf8;
+      color: var(--ink);
+    }
+
+    .word-bank {
+      display: grid;
+      gap: 9px;
+    }
+
+    .word-bank-group {
+      display: grid;
+      gap: 7px;
+    }
+
+    .word-bank-group h3 {
+      margin: 0;
+      font-size: 0.88rem;
+    }
+
+    .alert {
+      border: 1px solid rgba(185, 131, 24, 0.45);
+      background: #fff8e8;
+      color: #5e4415;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      line-height: 1.35;
+      font-size: 0.87rem;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 1180px) {
+      main {
+        grid-template-columns: minmax(300px, 380px) minmax(420px, 1fr);
+      }
+
+      .feedback-panel {
+        grid-column: 1 / -1;
+      }
+
+      .feedback {
+        grid-template-columns: minmax(260px, 0.8fr) minmax(300px, 1fr) minmax(260px, 0.8fr);
+        align-items: start;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .topbar-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        justify-content: start;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .feedback {
+        grid-template-columns: 1fr;
+      }
+
+      .formula {
+        grid-template-columns: 1fr;
+      }
+
+      .formula-card {
+        min-height: 62px;
+      }
+
+      .coach-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar-inner,
+      main {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .brand {
+        align-items: start;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+      }
+
+      .field-inline {
+        grid-column: 1 / -1;
+      }
+
+      .reason-grid,
+      .coach-grid,
+      .score-wrap,
+      .mini-row {
+        grid-template-columns: 1fr;
+      }
+
+      .score-wrap {
+        justify-items: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg class="mini-icon" viewBox="0 0 24 24">
+              <path d="M4 19.5V5a2 2 0 0 1 2-2h11"></path>
+              <path d="M6 17h12a2 2 0 0 1 2 2v1H6a2 2 0 0 1 0-4Z"></path>
+              <path d="M8 7h7"></path>
+              <path d="M8 11h9"></path>
+            </svg>
+          </div>
+          <div>
+            <h1>Thesis Writing Simulator</h1>
+            <p>Build, test, and repair a thesis that works like a roadmap.</p>
+          </div>
+        </div>
+        <div class="toolbar" aria-label="Simulator controls">
+          <div class="field-inline">
+            <label for="essayType">Essay type</label>
+            <select id="essayType" class="select">
+              <option value="narrative">Narrative</option>
+              <option value="expository">Expository</option>
+              <option value="research">Research Essay</option>
+              <option value="descriptive">Descriptive</option>
+            </select>
+          </div>
+          <button id="exampleBtn" class="icon-btn" aria-label="Load an example">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 5v14"></path>
+              <path d="M5 12h14"></path>
+            </svg>
+          </button>
+          <button id="resetBtn" class="icon-btn" aria-label="Reset simulator">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+              <path d="M3 4v5h5"></path>
+            </svg>
+          </button>
+          <button id="downloadBtn" class="icon-btn" aria-label="Download this HTML file">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v12"></path>
+              <path d="m7 10 5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>1. Choose The Pieces</h2>
+            <p>Use the template to turn an idea into a thesis.</p>
+          </div>
+        </div>
+        <div class="panel-body stack">
+          <div class="field">
+            <label for="assignmentTopic">Assignment topic or prompt</label>
+            <input id="assignmentTopic" class="input" type="text" placeholder="Example: later school start times">
+            <div class="hint">Enter the topic once here. The checker uses it to see whether the thesis stays connected.</div>
+          </div>
+
+          <div class="template-rail" aria-label="Thesis template">
+            <details class="part" data-part="formula" open="" data-ready="true">
+              <summary><span class="number">1</span><span>Thesis Formula</span><span class="status-dot"></span></summary>
+              <div class="part-content">
+                <select id="formulaType" class="select">
+                  <option value="because">Because Formula</option>
+                  <option value="although">Although Formula</option>
+                  <option value="whatHow">What/How Formula</option>
+                </select>
+                <button class="quiet-btn" type="button" data-help="formula">What does this formula do?</button>
+              </div>
+            </details>
+
+            <details class="part" data-part="claim" data-ready="false">
+              <summary><span class="number">2</span><span>Debatable Claim</span><span class="status-dot"></span></summary>
+              <div class="part-content">
+                <input id="claim" class="input" type="text" placeholder="the position, assertion, angle, or controlling idea">
+                <button class="quiet-btn" type="button" data-help="claim">How do I know it works?</button>
+              </div>
+            </details>
+
+            <details class="part" data-part="reasons" data-ready="false">
+              <summary><span class="number">3</span><span>Because / Reasons</span><span class="status-dot"></span></summary>
+              <div class="part-content">
+                <div class="reason-grid">
+                  <input id="reason1" class="input" type="text" placeholder="reason 1">
+                  <input id="reason2" class="input" type="text" placeholder="reason 2">
+                  <input id="reason3" class="input" type="text" placeholder="reason 3">
+                </div>
+                <button class="quiet-btn" type="button" data-help="reasons">What counts as support?</button>
+              </div>
+            </details>
+
+            <details class="part" data-part="extensions" data-ready="true">
+              <summary><span class="number">4</span><span>Counterargument / So What?</span><span class="status-dot"></span></summary>
+              <div class="part-content">
+                <input id="counterargument" class="input" type="text" placeholder="Although formula: counterargument">
+                <input id="significance" class="input" type="text" placeholder="What/How formula: why the argument matters">
+                <button class="quiet-btn" type="button" data-help="extensions">When do I use these?</button>
+              </div>
+            </details>
+          </div>
+
+          <div class="segmented" aria-label="Challenge level">
+            <button id="level68" type="button" aria-pressed="true">Grades 6-8</button>
+            <button id="level912" type="button" aria-pressed="false">Grades 9-12</button>
+          </div>
+
+          <div class="btn-row">
+            <button id="buildBtn" class="primary-btn" type="button">
+              <svg class="mini-icon" viewBox="0 0 24 24">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+              </svg>
+              Build Thesis
+            </button>
+            <button id="repairBtn" class="secondary-btn" type="button">
+              <svg class="mini-icon" viewBox="0 0 24 24">
+                <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3Z"></path>
+              </svg>
+              Coach Fix
+            </button>
+          </div>
+
+          <div class="alert" id="typeTip">Narrative thesis check: name the event or experience, then show the lesson, change, or central insight the story will develop. Use this when the thesis needs a clear position and a roadmap of supporting reasons.</div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>2. Test The Thesis</h2>
+              <p>Edit the sentence, then run the strength check.</p>
+            </div>
+          </div>
+          <div class="panel-body stack">
+            <div class="builder-visual" aria-label="Thesis formula">
+              <div class="formula">
+                <div class="formula-card" style="--card-color: var(--blue)">
+                  <b>[Topic]</b>
+                  <span>The subject or prompt the thesis answers.</span>
+                </div>
+                <div class="formula-card" style="--card-color: var(--violet)">
+                  <b>[Debatable Claim]</b>
+                  <span>The position, angle, assertion, or controlling idea.</span>
+                </div>
+                <div class="formula-card" style="--card-color: var(--yellow)">
+                  <b>[Because / Reasons]</b>
+                  <span>The proof, support, or explanation that creates the roadmap.</span>
+                </div>
+              </div>
+              <div class="hint" id="formulaPattern">[Position] + because + [Reason 1], [Reason 2], and [Reason 3].</div>
+            </div>
+
+            <div class="thesis-editor">
+              <label class="sr-only" for="thesisInput">Thesis statement</label>
+              <textarea id="thesisInput" class="textarea" placeholder="Type or build a thesis here. Example: Later school start times should be adopted because they improve attention, support teen sleep needs, and reduce morning stress."></textarea>
+              <div class="editor-meta">
+                <span id="wordCount">0 words</span>
+                <span id="sentenceCount">0 sentences</span>
+              </div>
+              <div class="btn-row">
+                <button id="checkBtn" class="primary-btn" type="button">
+                  <svg class="mini-icon" viewBox="0 0 24 24">
+                    <path d="m20 6-11 11-5-5"></path>
+                  </svg>
+                  Check Strength
+                </button>
+                <button id="copyBtn" class="secondary-btn" type="button">
+                  <svg class="mini-icon" viewBox="0 0 24 24">
+                    <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="editor-meta">
+                <strong>Current template draft</strong>
+                <span>updates as you type</span>
+              </div>
+              <div id="draftPreview" class="output-box empty">Fill in the pieces or load an example.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Practice Repair Buttons</h2>
+              <p>After checking strength, click a button to diagnose and repair that part.</p>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="coach-grid">
+              <button class="coach-card neutral" type="button" data-issue="broad">
+          <strong>Topic Focus</strong>
+          <span><span class="status-text">Check first</span>Enter a thesis and check strength to get targeted feedback.</span>
+        </button>
+              <button class="coach-card neutral" type="button" data-issue="flat">
+          <strong>Debatable Claim</strong>
+          <span><span class="status-text">Check first</span>Enter a thesis and check strength to get targeted feedback.</span>
+        </button>
+              <button class="coach-card neutral" type="button" data-issue="support">
+          <strong>Roadmap Support</strong>
+          <span><span class="status-text">Check first</span>Enter a thesis and check strength to get targeted feedback.</span>
+        </button>
+              <button class="coach-card neutral" type="button" data-issue="offtopic">
+          <strong>Topic Match</strong>
+          <span><span class="status-text">Check first</span>Enter a thesis and check strength to get targeted feedback.</span>
+        </button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel feedback-panel">
+        <div class="panel-header">
+          <div>
+            <h2>3. Feedback</h2>
+            <p>Use the meter to revise one part at a time.</p>
+          </div>
+        </div>
+        <div class="panel-body feedback">
+          <div class="score-wrap">
+            <div class="score-ring" id="scoreRing" style="--score: 0%">
+              <div>
+                <strong id="scoreNumber">0</strong>
+                <span>strength</span>
+              </div>
+            </div>
+            <div>
+              <h3 class="rating-title" id="ratingTitle">Ready to check</h3>
+              <p class="next-step" id="nextStep">Build or type a thesis, then check its strength.</p>
+            </div>
+          </div>
+
+          <div class="meter-list" id="meterList">
+          <div class="meter-row">
+            <div class="meter-label"><span>Topic connection</span><span>0%</span></div>
+            <div class="meter"><span style="width: 0%; background: var(--red)"></span></div>
+          </div>
+        
+          <div class="meter-row">
+            <div class="meter-label"><span>Formula fit</span><span>0%</span></div>
+            <div class="meter"><span style="width: 0%; background: var(--red)"></span></div>
+          </div>
+        
+          <div class="meter-row">
+            <div class="meter-label"><span>Debatable claim</span><span>0%</span></div>
+            <div class="meter"><span style="width: 0%; background: var(--red)"></span></div>
+          </div>
+        
+          <div class="meter-row">
+            <div class="meter-label"><span>Because / reasons</span><span>0%</span></div>
+            <div class="meter"><span style="width: 0%; background: var(--red)"></span></div>
+          </div>
+        
+          <div class="meter-row">
+            <div class="meter-label"><span>Clarity</span><span>0%</span></div>
+            <div class="meter"><span style="width: 0%; background: var(--red)"></span></div>
+          </div>
+        </div>
+
+          <div class="feedback-list" id="feedbackList">
+            <div class="feedback-item warn">
+              <span class="badge">!</span>
+              <span>Feedback will appear after the first check.</span>
+            </div>
+          </div>
+
+          <div class="roadmap" aria-label="Roadmap preview">
+            <div class="roadmap-row">
+              <b>What</b>
+              <span id="roadmapWhat">No topic identified yet.</span>
+            </div>
+            <div class="roadmap-row">
+              <b>How</b>
+              <span id="roadmapHow">No claim or angle identified yet.</span>
+            </div>
+            <div class="roadmap-row">
+              <b>Why</b>
+              <span id="roadmapWhy">No supporting reasons identified yet.</span>
+            </div>
+          </div>
+
+          <div class="word-bank">
+            <div class="word-bank-group">
+              <h3>Formula Choices</h3>
+              <div class="chips" id="formulaBank"><button class="chip" type="button" data-formula="because">Because Formula</button><button class="chip" type="button" data-formula="although">Although Formula</button><button class="chip" type="button" data-formula="whatHow">What/How Formula</button></div>
+            </div>
+            <div class="word-bank-group">
+              <h3>Useful Claim Starters</h3>
+              <div class="chips" id="starterBank"><button class="chip" type="button" data-starter="shows that">shows that</button><button class="chip" type="button" data-starter="reveals how">reveals how</button><button class="chip" type="button" data-starter="teaches that">teaches that</button><button class="chip" type="button" data-starter="matters because">matters because</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <header>
+        <div>
+          <h3 id="modalTitle">Help</h3>
+        </div>
+        <button id="closeModal" class="icon-btn" aria-label="Close help">
+          <svg viewBox="0 0 24 24">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </header>
+      <div id="modalContent" class="content"></div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      level: "6-8",
+      lastIssue: null
+    };
+
+    const formulaData = {
+      because: {
+        label: "Because Formula",
+        pattern: "[Position] + because + [Reason 1], [Reason 2], and [Reason 3].",
+        tip: "Use this when the thesis needs a clear position and a roadmap of supporting reasons."
+      },
+      although: {
+        label: "Although Formula",
+        pattern: "Although [Counterargument], [Topic] + [Assertion] + because [Reason].",
+        tip: "Use this when students need to acknowledge the other side before making their own assertion."
+      },
+      whatHow: {
+        label: "What/How Formula",
+        pattern: "[What the argument is] + how + [How it is supported] + so what? [Why it matters].",
+        tip: "Use this when students need to explain what they will argue, how they will support it, and why it matters."
+      }
+    };
+
+    const essayData = {
+      narrative: {
+        label: "Narrative",
+        tip: "Narrative thesis check: name the event or experience, then show the lesson, change, or central insight the story will develop.",
+        topic: "my first solo audition",
+        claim: "shows that confidence grows through preparation",
+        reasons: ["practice builds courage", "mistakes teach flexibility", "supportive feedback turns fear into focus"],
+        counterargument: "auditions may seem like simple performances",
+        significance: "small challenges can change how people understand themselves",
+        starters: ["shows that", "reveals how", "teaches that", "matters because"]
+      },
+      expository: {
+        label: "Expository",
+        tip: "Expository thesis check: explain a clear idea or process. It can be less argumentative, but it still needs a focused angle and reasons.",
+        topic: "school gardens",
+        claim: "improve student learning beyond the science classroom",
+        reasons: ["they connect lessons to daily life", "they encourage teamwork", "they make healthy habits visible"],
+        counterargument: "some people see gardens as extra school decoration",
+        significance: "hands-on learning helps students remember and apply academic ideas",
+        starters: ["improve", "explain why", "show how", "matter because"]
+      },
+      research: {
+        label: "Research Essay",
+        tip: "Research thesis check: take a position that evidence could support or challenge. Strong research theses are specific, arguable, and provable.",
+        topic: "later school start times",
+        claim: "should be adopted by middle and high schools",
+        reasons: ["they improve attention", "they support teen sleep needs", "they reduce morning stress"],
+        counterargument: "later starts may complicate bus schedules and after-school activities",
+        significance: "school schedules should support how teenagers actually learn and function",
+        starters: ["should be", "should not be", "needs to be", "is more effective when"]
+      },
+      descriptive: {
+        label: "Descriptive",
+        tip: "Descriptive thesis check: name the subject and the dominant impression. The reasons should point to details a reader can picture.",
+        topic: "the abandoned train station",
+        claim: "creates a mood of quiet resilience",
+        reasons: ["faded signs suggest history", "sunlight softens the empty platform", "new plants grow through the cracked pavement"],
+        counterargument: "an abandoned station may first seem empty and forgotten",
+        significance: "details in a place can reveal memory, loss, and renewal",
+        starters: ["creates", "reveals", "captures", "highlights"]
+      }
+    };
+
+    const helpContent = {
+      topic: {
+        title: "Topic",
+        body: `
+          <p>The topic is the subject or prompt your thesis must answer. Keep it narrow enough that one essay can actually handle it.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Too broad</b><span>Social media is important.</span></div>
+            <div class="mini-row"><b>More specific</b><span>Short-form video apps affect how students complete homework.</span></div>
+          </div>
+        `
+      },
+      formula: {
+        title: "Thesis Formula",
+        body: `
+          <p>Choose the formula that fits the writing task. The simulator will build the sentence from your topic, claim, and reasons.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Because</b><span>[Position] + because + [Reason 1], [Reason 2], and [Reason 3].</span></div>
+            <div class="mini-row"><b>Although</b><span>Although [Counterargument], [Topic] + [Assertion] + because [Reason].</span></div>
+            <div class="mini-row"><b>What/How</b><span>[What the argument is] + how + [How it is supported] + so what? [Why it matters].</span></div>
+          </div>
+        `
+      },
+      claim: {
+        title: "Debatable Claim",
+        body: `
+          <p>A debatable claim gives the essay a direction. For research, it should be a position someone could question. For expository, narrative, and descriptive writing, it can be a clear angle, lesson, mood, or interpretation.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Just a fact</b><span>Many schools have dress codes.</span></div>
+            <div class="mini-row"><b>Claim</b><span>Flexible dress codes create a better learning environment because they reduce conflict, respect student identity, and keep rules focused on safety.</span></div>
+          </div>
+        `
+      },
+      reasons: {
+        title: "Because / Reasons",
+        body: `
+          <p>The reasons after <b>because</b> become the roadmap for body paragraphs. Each reason should be something you can explain with examples, details, or evidence.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Too vague</b><span>because it is good, helpful, and important.</span></div>
+            <div class="mini-row"><b>Specific</b><span>because it improves attention, gives students more planning time, and reduces late work.</span></div>
+          </div>
+        `
+      },
+      extensions: {
+        title: "Counterargument / So What?",
+        body: `
+          <p>Use the counterargument field with the Although Formula. Use the So What field with the What/How Formula to explain why the argument matters.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Counterargument</b><span>Although later starts may complicate bus schedules...</span></div>
+            <div class="mini-row"><b>So what?</b><span>This matters because school schedules should support how teenagers learn.</span></div>
+          </div>
+        `
+      }
+    };
+
+    const issueContent = {
+      broad: {
+        label: "Topic Focus",
+        title: "Repair: Too Broad",
+        body: `
+          <p>Ask: <b>Which part of this topic will my essay actually prove or explain?</b></p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Before</b><span>Technology changes students.</span></div>
+            <div class="mini-row"><b>Repair move</b><span>Name the exact technology, the group affected, and the change.</span></div>
+            <div class="mini-row"><b>After</b><span>Homework apps change how seventh graders manage assignments because they organize deadlines, show missing work quickly, and make teacher feedback easier to find.</span></div>
+          </div>
+        `
+      },
+      flat: {
+        label: "Debatable Claim",
+        title: "Repair: Just A Fact",
+        body: `
+          <p>A fact can start your thinking, but a thesis needs a point. Add an answer to <b>so what?</b></p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Before</b><span>The cafeteria serves breakfast.</span></div>
+            <div class="mini-row"><b>Repair move</b><span>Decide what that fact shows, changes, or proves.</span></div>
+            <div class="mini-row"><b>After</b><span>Serving breakfast before first period improves the school day because it helps students focus, reduces morning stress, and supports students who arrive early.</span></div>
+          </div>
+        `
+      },
+      support: {
+        label: "Roadmap Support",
+        title: "Repair: No Roadmap",
+        body: `
+          <p>If the thesis has no <b>because</b> section, the reader cannot predict the body paragraphs. Add two or three reasons that can become paragraph topics.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Before</b><span>School uniforms should not be required.</span></div>
+            <div class="mini-row"><b>After</b><span>School uniforms should not be required because they limit personal expression, create extra costs for families, and do not solve deeper behavior issues.</span></div>
+          </div>
+        `
+      },
+      offtopic: {
+        label: "Topic Match",
+        title: "Repair: Off Topic",
+        body: `
+          <p>Compare the thesis to the assignment prompt. If the main words do not overlap, revise the topic phrase so the reader sees the connection immediately.</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Prompt</b><span>Explain how weather affects a community.</span></div>
+            <div class="mini-row"><b>Drifting thesis</b><span>People should recycle more.</span></div>
+            <div class="mini-row"><b>Connected thesis</b><span>Heavy summer storms affect coastal communities because they disrupt transportation, damage homes, and require stronger emergency planning.</span></div>
+          </div>
+        `
+      }
+    };
+
+    const vagueWords = [
+      "good", "bad", "nice", "things", "stuff", "very", "really", "a lot", "many things",
+      "interesting", "important", "great", "awesome", "cool", "better"
+    ];
+
+    const fillerClaims = [
+      "is good", "is bad", "is important", "is interesting", "has many things",
+      "there are many reasons", "this essay is about", "i will talk about", "i am going to"
+    ];
+
+    const stopWords = new Set([
+      "a", "an", "and", "are", "as", "at", "be", "because", "by", "for", "from", "has",
+      "have", "how", "in", "is", "it", "of", "on", "or", "that", "the", "their", "they",
+      "this", "to", "was", "were", "what", "when", "where", "which", "who", "why", "with",
+      "write", "about", "essay", "should"
+    ]);
+
+    const els = {
+      essayType: document.querySelector("#essayType"),
+      assignmentTopic: document.querySelector("#assignmentTopic"),
+      formulaType: document.querySelector("#formulaType"),
+      claim: document.querySelector("#claim"),
+      reason1: document.querySelector("#reason1"),
+      reason2: document.querySelector("#reason2"),
+      reason3: document.querySelector("#reason3"),
+      counterargument: document.querySelector("#counterargument"),
+      significance: document.querySelector("#significance"),
+      typeTip: document.querySelector("#typeTip"),
+      formulaPattern: document.querySelector("#formulaPattern"),
+      thesisInput: document.querySelector("#thesisInput"),
+      draftPreview: document.querySelector("#draftPreview"),
+      wordCount: document.querySelector("#wordCount"),
+      sentenceCount: document.querySelector("#sentenceCount"),
+      scoreRing: document.querySelector("#scoreRing"),
+      scoreNumber: document.querySelector("#scoreNumber"),
+      ratingTitle: document.querySelector("#ratingTitle"),
+      nextStep: document.querySelector("#nextStep"),
+      meterList: document.querySelector("#meterList"),
+      feedbackList: document.querySelector("#feedbackList"),
+      roadmapWhat: document.querySelector("#roadmapWhat"),
+      roadmapHow: document.querySelector("#roadmapHow"),
+      roadmapWhy: document.querySelector("#roadmapWhy"),
+      formulaBank: document.querySelector("#formulaBank"),
+      starterBank: document.querySelector("#starterBank"),
+      modalBackdrop: document.querySelector("#modalBackdrop"),
+      modalTitle: document.querySelector("#modalTitle"),
+      modalContent: document.querySelector("#modalContent"),
+      level68: document.querySelector("#level68"),
+      level912: document.querySelector("#level912")
+    };
+
+    function cleanText(value) {
+      return (value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function escapeHtml(value) {
+      return cleanText(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function stripPeriod(value) {
+      return cleanText(value).replace(/[.?!]+$/g, "");
+    }
+
+    function capitalize(value) {
+      const text = cleanText(value);
+      return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+    }
+
+    function words(value) {
+      return cleanText(value).match(/[A-Za-z0-9'-]+/g) || [];
+    }
+
+    function contentWords(value) {
+      return words(value.toLowerCase()).filter(word => !stopWords.has(word) && word.length > 2);
+    }
+
+    function sentenceCount(value) {
+      const parts = cleanText(value).split(/[.!?]+/).map(part => part.trim()).filter(Boolean);
+      return parts.length;
+    }
+
+    function getReasonsFromFields() {
+      return [els.reason1.value, els.reason2.value, els.reason3.value].map(stripPeriod).filter(Boolean);
+    }
+
+    function getFormula() {
+      return formulaData[els.formulaType.value] || formulaData.because;
+    }
+
+    function inferReasons(thesis) {
+      const lower = thesis.toLowerCase();
+      const becauseIndex = lower.indexOf(" because ");
+      const howIndex = lower.indexOf(" how ");
+      let after = "";
+      if (els.formulaType.value === "whatHow" && howIndex !== -1) {
+        after = thesis.slice(howIndex + 5).replace(/\b(so what|which matters|this matters|why it matters)\b[\s\S]*/i, "").replace(/[.?!]+$/g, "");
+      } else if (becauseIndex !== -1) {
+        after = thesis.slice(becauseIndex + 9).replace(/[.?!]+$/g, "");
+      } else if (howIndex !== -1) {
+        after = thesis.slice(howIndex + 5).replace(/\b(so what|which matters|this matters|why it matters)\b[\s\S]*/i, "").replace(/[.?!]+$/g, "");
+      } else {
+        return [];
+      }
+      return after
+        .split(/,|;|\band\b|\balso\b|\bplus\b/gi)
+        .map(part => cleanText(part))
+        .filter(part => words(part).length > 1);
+    }
+
+    function inferClaim(thesis) {
+      const lower = thesis.toLowerCase();
+      const becauseIndex = lower.indexOf(" because ");
+      const howIndex = lower.indexOf(" how ");
+      let beforeMarker = thesis;
+      if (becauseIndex !== -1) beforeMarker = thesis.slice(0, becauseIndex);
+      if (howIndex !== -1 && (becauseIndex === -1 || howIndex < becauseIndex)) beforeMarker = thesis.slice(0, howIndex);
+      beforeMarker = beforeMarker.replace(/^although\s+.+?,\s*/i, "");
+      const topic = cleanText(els.assignmentTopic.value);
+      if (topic && beforeMarker.toLowerCase().startsWith(topic.toLowerCase())) {
+        return cleanText(beforeMarker.slice(topic.length));
+      }
+      return cleanText(beforeMarker);
+    }
+
+    function overlapScore(a, b) {
+      const aWords = new Set(contentWords(a));
+      const bWords = new Set(contentWords(b));
+      if (!aWords.size || !bWords.size) return 0;
+      let hits = 0;
+      aWords.forEach(word => {
+        if (bWords.has(word)) hits += 1;
+      });
+      return hits / Math.max(1, Math.min(aWords.size, bWords.size));
+    }
+
+    function buildDraftFromParts() {
+      return buildThesisFromPieces({
+        formula: els.formulaType.value,
+        topic: els.assignmentTopic.value,
+        claim: els.claim.value,
+        reasons: getReasonsFromFields(),
+        counterargument: els.counterargument.value,
+        significance: els.significance.value
+      });
+    }
+
+    function buildThesisFromPieces(parts) {
+      const formula = parts.formula || "because";
+      const topic = stripPeriod(parts.topic);
+      const claim = stripPeriod(parts.claim);
+      const reasons = (parts.reasons || []).map(stripPeriod).filter(Boolean);
+      const counterargument = stripPeriod(parts.counterargument);
+      const significance = stripPeriod(parts.significance);
+      const position = joinTopicAndClaim(topic, claim);
+      const reasonText = formatReasons(reasons);
+      let text = position;
+
+      if (formula === "although") {
+        text = "";
+        if (counterargument) text += `Although ${counterargument}, `;
+        text += position;
+        if (reasonText) text += ` because ${reasonText}`;
+      } else if (formula === "whatHow") {
+        text = position;
+        if (reasonText) text += ` by showing how ${reasonText}`;
+        if (significance) text += `, which matters because ${significance}`;
+      } else if (reasonText) {
+        text += `${text ? " because " : "Because "}${reasonText}`;
+      }
+      return text ? capitalize(text.replace(/\s+/g, " ").trim()) + "." : "";
+    }
+
+    function joinTopicAndClaim(topic, claim) {
+      const cleanTopic = stripPeriod(topic);
+      const cleanClaim = stripPeriod(claim);
+      if (!cleanTopic) return cleanClaim;
+      if (!cleanClaim) return cleanTopic;
+      if (cleanClaim.toLowerCase().startsWith(cleanTopic.toLowerCase())) return cleanClaim;
+      return `${cleanTopic} ${cleanClaim}`;
+    }
+
+    function formatReasons(reasons) {
+      const cleaned = reasons.map(stripPeriod).filter(Boolean);
+      if (cleaned.length === 0) return "";
+      if (cleaned.length === 1) return cleaned[0];
+      if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+      return `${cleaned.slice(0, -1).join(", ")}, and ${cleaned[cleaned.length - 1]}`;
+    }
+
+    function updateDraftPreview() {
+      const draft = buildDraftFromParts();
+      els.draftPreview.textContent = draft || "Fill in the pieces or load an example.";
+      els.draftPreview.classList.toggle("empty", !draft);
+      updatePartStatuses();
+    }
+
+    function updatePartStatuses() {
+      document.querySelector('[data-part="formula"]').dataset.ready = cleanText(els.formulaType.value).length > 0;
+      document.querySelector('[data-part="claim"]').dataset.ready = cleanText(els.claim.value).length > 0;
+      document.querySelector('[data-part="reasons"]').dataset.ready = getReasonsFromFields().length >= 2;
+      const needsCounter = els.formulaType.value === "although";
+      const needsSignificance = els.formulaType.value === "whatHow";
+      document.querySelector('[data-part="extensions"]').dataset.ready =
+        (!needsCounter && !needsSignificance) ||
+        (needsCounter && cleanText(els.counterargument.value).length > 0) ||
+        (needsSignificance && cleanText(els.significance.value).length > 0);
+    }
+
+    function updateCounts() {
+      const count = words(els.thesisInput.value).length;
+      const sentences = sentenceCount(els.thesisInput.value);
+      els.wordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
+      els.sentenceCount.textContent = `${sentences} ${sentences === 1 ? "sentence" : "sentences"}`;
+    }
+
+    function setEssayType(type, loadWordsOnly = false) {
+      const data = essayData[type];
+      els.typeTip.textContent = `${data.tip} ${getFormula().tip}`;
+      els.formulaPattern.textContent = getFormula().pattern;
+      renderBanks();
+      if (!loadWordsOnly) updateDraftPreview();
+    }
+
+    function loadExample() {
+      const data = essayData[els.essayType.value];
+      els.assignmentTopic.value = data.topic;
+      els.claim.value = data.claim;
+      els.reason1.value = data.reasons[0];
+      els.reason2.value = data.reasons[1];
+      els.reason3.value = data.reasons[2];
+      els.counterargument.value = data.counterargument;
+      els.significance.value = data.significance;
+      updateDraftPreview();
+      els.thesisInput.value = buildDraftFromParts();
+      updateCounts();
+      checkThesis();
+    }
+
+    function resetSimulator() {
+      els.assignmentTopic.value = "";
+      els.claim.value = "";
+      els.reason1.value = "";
+      els.reason2.value = "";
+      els.reason3.value = "";
+      els.counterargument.value = "";
+      els.significance.value = "";
+      els.thesisInput.value = "";
+      updateDraftPreview();
+      updateCounts();
+      renderMeters([]);
+      els.scoreRing.style.setProperty("--score", "0%");
+      els.scoreRing.style.setProperty("--score-color", "var(--blue)");
+      els.scoreNumber.textContent = "0";
+      els.ratingTitle.textContent = "Ready to check";
+      els.nextStep.textContent = "Build or type a thesis, then check its strength.";
+      els.feedbackList.innerHTML = `<div class="feedback-item warn"><span class="badge">!</span><span>Feedback will appear after the first check.</span></div>`;
+      updateRoadmap("", "", []);
+      document.querySelectorAll(".coach-card").forEach(card => card.classList.remove("active"));
+      renderRepairCards();
+    }
+
+    function buildThesis() {
+      const draft = buildDraftFromParts();
+      els.thesisInput.value = draft;
+      updateCounts();
+      checkThesis();
+    }
+
+    function getQualityColor(score) {
+      if (score >= 82) return "var(--green)";
+      if (score >= 62) return "var(--yellow)";
+      return "var(--red)";
+    }
+
+    function analyzeThesis() {
+      const type = els.essayType.value;
+      const formula = els.formulaType.value;
+      const thesis = cleanText(els.thesisInput.value);
+      const topic = cleanText(els.assignmentTopic.value);
+      const reasons = getReasonsFromFields().length ? getReasonsFromFields() : inferReasons(thesis);
+      const claim = cleanText(els.claim.value) || inferClaim(thesis);
+      const thesisWords = words(thesis);
+      const lower = thesis.toLowerCase();
+      const topicConnection = topic ? overlapScore(topic, thesis) : 0;
+      const hasBecause = /\bbecause\b/i.test(thesis);
+      const hasAlthough = /^although\b/i.test(thesis);
+      const hasHow = /\bhow\b/i.test(thesis);
+      const hasSignificance = /\b(so what|which matters|this matters|why it matters|matters because)\b/i.test(thesis) || cleanText(els.significance.value).length > 0;
+      const vagueHits = vagueWords.filter(word => lower.includes(word));
+      const fillerHit = fillerClaims.find(phrase => lower.includes(phrase));
+      const sentences = sentenceCount(thesis);
+      const isQuestion = /\?$/.test(thesis.replace(/so what\?/i, ""));
+      const tooShort = thesisWords.length > 0 && thesisWords.length < 10;
+      const tooLong = thesisWords.length > 56 || sentences > 2;
+      const firstPerson = /\b(i|me|my|we|our|us)\b/i.test(thesis);
+      const claimWords = contentWords(claim).length;
+      const topicExists = topic.length > 0;
+      const counterargumentExists = cleanText(els.counterargument.value).length > 0 || /^although\s+.+?,/i.test(thesis);
+
+      let topicScore = 0;
+      if (topicExists) topicScore += 10;
+      if (topic && lower.includes(topic.toLowerCase())) topicScore += 10;
+      else if (topicConnection > 0.2) topicScore += 6;
+      if (topicExists && topicConnection > 0.2) topicScore += 4;
+      topicScore = Math.min(24, topicScore);
+
+      let formulaScore = 0;
+      if (formula === "although") {
+        if (hasAlthough) formulaScore += 6;
+        if (counterargumentExists) formulaScore += 4;
+        if (hasBecause) formulaScore += 6;
+      } else if (formula === "whatHow") {
+        if (hasHow) formulaScore += 8;
+        if (reasons.length >= 1) formulaScore += 4;
+        if (hasSignificance) formulaScore += 4;
+      } else {
+        if (hasBecause) formulaScore += 10;
+        if (reasons.length >= 2) formulaScore += 6;
+      }
+      formulaScore = Math.min(16, formulaScore);
+
+      let claimScore = 0;
+      if (claimWords >= 3) claimScore += 10;
+      if (!fillerHit && vagueHits.length <= 1 && claimWords >= 3) claimScore += 7;
+      if (type === "research" && /\b(should|must|need|needs|better|worse|more effective|less effective|adopt|limit|expand|change)\b/i.test(thesis)) claimScore += 6;
+      if (type !== "research" && claimWords >= 4) claimScore += 5;
+      if (topicExists && claim && !claim.toLowerCase().includes(topic.toLowerCase())) claimScore += 2;
+      claimScore = Math.min(24, claimScore);
+
+      let reasonsScore = 0;
+      if (hasBecause || formula === "whatHow") reasonsScore += 5;
+      if (reasons.length >= 1) reasonsScore += 4;
+      if (reasons.length >= 2) reasonsScore += 5;
+      if (reasons.length >= 3) reasonsScore += 4;
+      const detailedReasons = reasons.filter(reason => contentWords(reason).length >= 2).length;
+      if (detailedReasons >= Math.min(2, reasons.length) && reasons.length) reasonsScore += 4;
+      reasonsScore = Math.min(22, reasonsScore);
+
+      let clarityScore = 14;
+      if (!thesisWords.length) clarityScore = 0;
+      if (tooShort) clarityScore -= 5;
+      if (tooLong) clarityScore -= 5;
+      if (isQuestion) clarityScore -= 5;
+      if (vagueHits.length > 0) clarityScore -= Math.min(6, vagueHits.length * 2);
+      if (firstPerson && type !== "narrative") clarityScore -= 3;
+      clarityScore = Math.max(0, clarityScore);
+
+      const total = Math.round(topicScore + formulaScore + claimScore + reasonsScore + clarityScore);
+
+      const meters = [
+        { label: "Topic connection", value: Math.round((topicScore / 24) * 100) },
+        { label: "Formula fit", value: Math.round((formulaScore / 16) * 100) },
+        { label: "Debatable claim", value: Math.round((claimScore / 24) * 100) },
+        { label: "Because / reasons", value: Math.round((reasonsScore / 22) * 100) },
+        { label: "Clarity", value: Math.round((clarityScore / 14) * 100) }
+      ];
+
+      const feedback = [];
+      if (!thesisWords.length) {
+        feedback.push({ type: "warn", text: "Start by building or typing a thesis statement." });
+      } else {
+        if (topicScore >= 18) feedback.push({ type: "good", text: "The thesis is connected to the topic." });
+        if (!topicExists) feedback.push({ type: "bad", text: "Add the topic or prompt at the top so the checker knows what the essay is about." });
+        if (topicExists && topicConnection < 0.18) feedback.push({ type: "bad", text: "The thesis may drift from the topic. Reuse one or two important topic words in the thesis." });
+        if (formula === "although" && !hasAlthough) feedback.push({ type: "warn", text: "For the Although Formula, begin with an although counterargument." });
+        if (formula === "although" && !counterargumentExists) feedback.push({ type: "warn", text: "Add a real counterargument before your main assertion." });
+        if (formula === "whatHow" && !hasHow) feedback.push({ type: "warn", text: "For the What/How Formula, include how to show how the argument will be supported." });
+        if (formula === "whatHow" && !hasSignificance) feedback.push({ type: "warn", text: "Add the so what idea: explain why this argument matters." });
+        if (claimScore < 12) feedback.push({ type: "bad", text: "Strengthen the debatable claim. A reader should know the position, assertion, or controlling idea." });
+        if (fillerHit) feedback.push({ type: "warn", text: `The phrase "${fillerHit}" sounds like a placeholder. Replace it with a clearer position or insight.` });
+        if (formula !== "whatHow" && !hasBecause) feedback.push({ type: "bad", text: "Use because to connect the claim to supporting reasons." });
+        if (reasons.length < 2) feedback.push({ type: "bad", text: "Add at least two supporting reasons so the thesis gives the essay a roadmap." });
+        if (reasons.length >= 3) feedback.push({ type: "good", text: "The thesis gives three possible body-paragraph reasons." });
+        if (vagueHits.length) feedback.push({ type: "warn", text: `Replace vague wording: ${vagueHits.slice(0, 4).join(", ")}.` });
+        if (tooShort) feedback.push({ type: "warn", text: "The thesis is very short. Add a focused claim and reasons." });
+        if (tooLong) feedback.push({ type: "warn", text: "The thesis may be doing too much. Aim for one clear sentence or two tight sentences." });
+        if (isQuestion) feedback.push({ type: "bad", text: "A thesis should answer the question, not ask it." });
+        if (firstPerson && type !== "narrative") feedback.push({ type: "warn", text: "For this essay type, remove first person and make the claim sound more formal." });
+      }
+
+      if (feedback.length === 0 && thesisWords.length) {
+        feedback.push({ type: "good", text: "This thesis is focused, arguable, and supported by reasons." });
+      }
+
+      return {
+        score: Math.max(0, Math.min(100, total)),
+        meters,
+        feedback,
+        topic: topic || inferTopic(thesis),
+        claim,
+        reasons,
+        details: {
+          thesis,
+          topic,
+          formula,
+          topicConnection,
+          topicExists,
+          hasBecause,
+          hasAlthough,
+          hasHow,
+          hasSignificance,
+          counterargumentExists,
+          claimWords,
+          reasonsCount: reasons.length,
+          vagueHits,
+          fillerHit,
+          tooShort,
+          tooLong,
+          isQuestion,
+          thesisWordsCount: thesisWords.length
+        },
+        needs: {
+          topic: topicScore < 17,
+          formula: formulaScore < 10,
+          claim: claimScore < 12,
+          reasons: reasonsScore < 14,
+          offTopic: topicExists && topicConnection < 0.18,
+          clarity: clarityScore < 10
+        }
+      };
+    }
+
+    function inferTopic(thesis) {
+      const beforeBecause = thesis.split(/\bbecause\b/i)[0] || thesis;
+      return cleanText(beforeBecause.replace(/^although\s+.+?,\s*/i, "").split(/\b(should|shows|reveals|explains|demonstrates|creates|traces|explores|connects|contrasts|captures|highlights|improves|creates)\b/i)[0]);
+    }
+
+    function checkThesis() {
+      const result = analyzeThesis();
+      const score = result.score;
+      const color = getQualityColor(score);
+      els.scoreRing.style.setProperty("--score", `${score}%`);
+      els.scoreRing.style.setProperty("--score-color", color);
+      els.scoreNumber.textContent = score;
+      els.ratingTitle.textContent = getRating(score);
+      els.nextStep.textContent = getNextStep(result);
+      renderMeters(result.meters);
+      renderFeedback(result.feedback);
+      updateRoadmap(result.topic, result.claim, result.reasons);
+      renderRepairCards(result);
+    }
+
+    function getRating(score) {
+      if (score >= 88) return "Strong thesis";
+      if (score >= 74) return "Almost there";
+      if (score >= 58) return "Developing";
+      if (score > 0) return "Needs repair";
+      return "Ready to check";
+    }
+
+    function getNextStep(result) {
+      if (result.score === 0) return "Build or type a thesis, then check its strength.";
+      if (result.needs.offTopic) return "First, reconnect the thesis to the assignment topic.";
+      if (result.needs.topic) return "First, make the topic more specific and visible in the sentence.";
+      if (result.needs.formula) return "Next, revise the thesis so it follows the selected formula.";
+      if (result.needs.claim) return "Next, add a stronger claim, angle, lesson, mood, or position.";
+      if (result.needs.reasons) return "Next, add because plus two or three provable reasons.";
+      if (result.needs.clarity) return "Next, tighten vague words and keep the thesis to one or two sentences.";
+      return "Polish word choice, then use each reason as a body-paragraph plan.";
+    }
+
+    function renderMeters(meters) {
+      if (!meters.length) {
+        meters = [
+          { label: "Topic connection", value: 0 },
+          { label: "Formula fit", value: 0 },
+          { label: "Debatable claim", value: 0 },
+          { label: "Because / reasons", value: 0 },
+          { label: "Clarity", value: 0 }
+        ];
+      }
+
+      els.meterList.innerHTML = meters.map(meter => {
+        const color = getQualityColor(meter.value);
+        return `
+          <div class="meter-row">
+            <div class="meter-label"><span>${meter.label}</span><span>${meter.value}%</span></div>
+            <div class="meter"><span style="width: ${meter.value}%; background: ${color}"></span></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderFeedback(items) {
+      els.feedbackList.innerHTML = items.map(item => `
+        <div class="feedback-item ${item.type}">
+          <span class="badge">${item.type === "good" ? "+" : "!"}</span>
+          <span>${item.text}</span>
+        </div>
+      `).join("");
+    }
+
+    function getRepairState(issueKey, result) {
+      const checked = result && result.details && result.details.thesisWordsCount > 0;
+      const label = issueContent[issueKey].label;
+
+      if (!checked) {
+        return {
+          label,
+          status: "Check first",
+          className: "neutral",
+          needsRepair: false,
+          summary: "Enter a thesis and check strength to get targeted feedback."
+        };
+      }
+
+      const details = result.details;
+      const topicIsVeryBroad = details.topicExists && contentWords(details.topic).length < 2;
+      const claimIsWeak = result.needs.claim || Boolean(details.fillerHit) || details.claimWords < 3;
+      const supportIsWeak =
+        result.needs.reasons ||
+        (details.formula !== "whatHow" && !details.hasBecause) ||
+        (details.formula === "although" && (!details.hasAlthough || !details.counterargumentExists)) ||
+        (details.formula === "whatHow" && (!details.hasHow || !details.hasSignificance));
+
+      const states = {
+        broad: {
+          needsRepair: result.needs.topic || topicIsVeryBroad,
+          summary: result.needs.topic || topicIsVeryBroad
+            ? "This part needs repair: the topic needs to be more visible or more focused."
+            : "The topic is visible enough to guide the thesis."
+        },
+        flat: {
+          needsRepair: claimIsWeak,
+          summary: claimIsWeak
+            ? "This part needs repair: the claim needs a clearer position, angle, or interpretation."
+            : "The claim gives the thesis a workable direction."
+        },
+        support: {
+          needsRepair: supportIsWeak,
+          summary: supportIsWeak
+            ? "This part needs repair: the formula or reasons do not give a complete roadmap yet."
+            : "The support gives the reader a useful roadmap."
+        },
+        offtopic: {
+          needsRepair: result.needs.offTopic,
+          summary: result.needs.offTopic
+            ? "This part needs repair: the thesis is not clearly connected to the topic."
+            : "The thesis appears connected to the topic."
+        }
+      };
+
+      const state = states[issueKey];
+      return {
+        label,
+        status: state.needsRepair ? "Needs repair" : "Looks workable",
+        className: state.needsRepair ? "needs-repair" : "looks-ok",
+        needsRepair: state.needsRepair,
+        summary: state.summary
+      };
+    }
+
+    function renderRepairCards(result = null) {
+      const current = result || analyzeThesis();
+      document.querySelectorAll(".coach-card").forEach(button => {
+        const state = getRepairState(button.dataset.issue, current);
+        button.classList.remove("needs-repair", "looks-ok", "neutral");
+        button.classList.add(state.className);
+        button.innerHTML = `
+          <strong>${state.label}</strong>
+          <span><span class="status-text">${state.status}</span>${state.summary}</span>
+        `;
+      });
+    }
+
+    function showRepairModal(issueKey) {
+      const result = analyzeThesis();
+      renderRepairCards(result);
+      const advice = getRepairAdvice(issueKey, result);
+      showModal(advice.title, advice.body);
+    }
+
+    function getRepairAdvice(issueKey, result) {
+      const state = getRepairState(issueKey, result);
+      const details = result.details || {};
+      const checked = details.thesisWordsCount > 0;
+      const title = `${state.label}: ${state.status}`;
+
+      if (!checked) {
+        return {
+          title,
+          body: `
+            <p><b>Check a thesis first.</b> Type a thesis or build one from the fields, then choose <b>Check Strength</b>. This repair button will then point to the exact part that works or does not work.</p>
+            <div class="mini-table">
+              <div class="mini-row"><b>Next move</b><span>Add a topic, claim, and reasons, then check strength.</span></div>
+            </div>
+          `
+        };
+      }
+
+      const rows = getRepairRows(issueKey, result, state);
+      return {
+        title,
+        body: `
+          <p>${state.needsRepair ? "<b>This part does not work yet.</b>" : "<b>This part is working.</b>"} ${escapeHtml(state.summary)}</p>
+          <div class="mini-table">
+            <div class="mini-row"><b>Student thesis</b><span>${escapeHtml(details.thesis)}</span></div>
+            ${rows}
+          </div>
+        `
+      };
+    }
+
+    function getRepairRows(issueKey, result, state) {
+      const details = result.details;
+      const data = essayData[els.essayType.value];
+      const topic = stripPeriod(els.assignmentTopic.value) || data.topic;
+      const claim = stripPeriod(els.claim.value) || data.claim;
+      const reasons = getReasonsFromFields().length ? getReasonsFromFields() : data.reasons;
+      const suggestion = buildRepairSuggestion(issueKey, result);
+
+      if (issueKey === "broad") {
+        const repairMove = state.needsRepair
+          ? `Use a focused topic phrase. If the topic is "${topic}", narrow it by naming the exact group, situation, text, place, or decision.`
+          : `Keep the topic phrase visible so the reader knows what the essay will prove or explain.`;
+        return `
+          <div class="mini-row"><b>Why</b><span>${state.needsRepair ? "The topic is missing, too broad, or not easy to find in the thesis." : "The topic is specific enough to act as the essay's anchor."}</span></div>
+          <div class="mini-row"><b>Repair move</b><span>${escapeHtml(repairMove)}</span></div>
+          <div class="mini-row"><b>Try this</b><span>${escapeHtml(suggestion)}</span></div>
+        `;
+      }
+
+      if (issueKey === "flat") {
+        const weakSignal = details.fillerHit ? `The phrase "${details.fillerHit}" sounds like a placeholder.` : "The claim should make a position, assertion, lesson, mood, or interpretation clear.";
+        return `
+          <div class="mini-row"><b>Why</b><span>${escapeHtml(state.needsRepair ? weakSignal : "The thesis has a claim that a reader can follow and discuss.")}</span></div>
+          <div class="mini-row"><b>Repair move</b><span>Answer <b>so what?</b> after the topic: what should the reader understand, agree with, or notice?</span></div>
+          <div class="mini-row"><b>Try this</b><span>${escapeHtml(suggestion)}</span></div>
+        `;
+      }
+
+      if (issueKey === "support") {
+        const formula = getFormula();
+        const missing = getMissingSupportText(result);
+        const repairMove = state.needsRepair
+          ? "Add because, although, or how / so what language that matches the selected formula."
+          : "Keep the formula pieces clear, then use each reason as a body-paragraph plan.";
+        return `
+          <div class="mini-row"><b>Why</b><span>${escapeHtml(state.needsRepair ? missing : `The thesis follows the ${formula.label} and gives support the body paragraphs can use.`)}</span></div>
+          <div class="mini-row"><b>Repair move</b><span>${escapeHtml(repairMove)}</span></div>
+          <div class="mini-row"><b>Try this</b><span>${escapeHtml(suggestion)}</span></div>
+        `;
+      }
+
+      const topicWords = topic ? `"${topic}"` : "the topic words";
+      return `
+        <div class="mini-row"><b>Why</b><span>${escapeHtml(state.needsRepair ? `The thesis does not reuse or clearly connect to ${topicWords}.` : "The thesis repeats or clearly connects to the topic.")}</span></div>
+        <div class="mini-row"><b>Repair move</b><span>Start the thesis with the topic phrase or reuse the most important topic words before the claim.</span></div>
+        <div class="mini-row"><b>Try this</b><span>${escapeHtml(suggestion)}</span></div>
+      `;
+    }
+
+    function getMissingSupportText(result) {
+      const details = result.details;
+      if (details.formula === "although" && !details.hasAlthough) return "The selected formula needs an although counterargument at the beginning.";
+      if (details.formula === "although" && !details.counterargumentExists) return "The selected formula needs a real counterargument before the main assertion.";
+      if (details.formula !== "whatHow" && !details.hasBecause) return "The thesis needs because to connect the claim to reasons.";
+      if (details.formula === "whatHow" && !details.hasHow) return "The selected formula needs how to show how the argument is supported.";
+      if (details.formula === "whatHow" && !details.hasSignificance) return "The selected formula needs a so what idea that explains why the argument matters.";
+      if (details.reasonsCount < 2) return "The thesis needs at least two clear reasons for a stronger roadmap.";
+      return "The roadmap needs clearer reasons that can become body paragraphs.";
+    }
+
+    function buildRepairSuggestion(issueKey, result) {
+      const data = essayData[els.essayType.value];
+      const formula = els.formulaType.value;
+      const topic = stripPeriod(els.assignmentTopic.value) || data.topic;
+      let claim = stripPeriod(els.claim.value) || data.claim;
+      let reasons = getReasonsFromFields();
+      let counterargument = stripPeriod(els.counterargument.value) || data.counterargument;
+      let significance = stripPeriod(els.significance.value) || data.significance;
+
+      if (issueKey === "flat" || result.needs.claim) claim = data.claim;
+      if (issueKey === "support" || reasons.length < 2) reasons = data.reasons;
+      if (issueKey === "offtopic" && result.needs.offTopic) claim = data.claim;
+      if (formula === "although" && !counterargument) counterargument = data.counterargument;
+      if (formula === "whatHow" && !significance) significance = data.significance;
+
+      return buildThesisFromPieces({
+        formula,
+        topic,
+        claim,
+        reasons,
+        counterargument,
+        significance
+      });
+    }
+
+    function updateRoadmap(topic, claim, reasons) {
+      els.roadmapWhat.textContent = topic || "No topic identified yet.";
+      els.roadmapHow.textContent = claim || "No claim or angle identified yet.";
+      els.roadmapWhy.textContent = reasons.length ? formatReasons(reasons) : "No supporting reasons identified yet.";
+    }
+
+    function renderBanks() {
+      const data = essayData[els.essayType.value];
+      els.formulaBank.innerHTML = Object.entries(formulaData).map(([key, formula]) => `<button class="chip" type="button" data-formula="${key}">${formula.label}</button>`).join("");
+      els.starterBank.innerHTML = data.starters.map(starter => `<button class="chip" type="button" data-starter="${starter}">${starter}</button>`).join("");
+    }
+
+    function showModal(title, body) {
+      els.modalTitle.textContent = title;
+      els.modalContent.innerHTML = body;
+      els.modalBackdrop.classList.add("open");
+      document.querySelector("#closeModal").focus();
+    }
+
+    function closeModal() {
+      els.modalBackdrop.classList.remove("open");
+    }
+
+    function coachFix() {
+      const result = analyzeThesis();
+      const type = els.essayType.value;
+      const data = essayData[type];
+
+      if (!cleanText(els.assignmentTopic.value)) els.assignmentTopic.value = data.topic;
+      if (!cleanText(els.claim.value) || result.needs.claim) els.claim.value = data.claim;
+      if (!getReasonsFromFields().length || result.needs.reasons) {
+        els.reason1.value = data.reasons[0];
+        els.reason2.value = data.reasons[1];
+        els.reason3.value = data.reasons[2];
+      }
+      if (els.formulaType.value === "although" && !cleanText(els.counterargument.value)) els.counterargument.value = data.counterargument;
+      if (els.formulaType.value === "whatHow" && !cleanText(els.significance.value)) els.significance.value = data.significance;
+
+      updateDraftPreview();
+      els.thesisInput.value = buildDraftFromParts();
+      updateCounts();
+      checkThesis();
+    }
+
+    function downloadHtml() {
+      const html = "<!doctype html>\\n" + document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "thesis-writing-simulator.html";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copyThesis() {
+      const text = cleanText(els.thesisInput.value);
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        document.querySelector("#copyBtn").textContent = "Copied";
+        setTimeout(() => {
+          document.querySelector("#copyBtn").innerHTML = `
+            <svg class="mini-icon" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy
+          `;
+        }, 1000);
+      } catch (error) {
+        showModal("Copy Thesis", `<p>Select the thesis text and copy it with your keyboard. The browser blocked automatic copying.</p>`);
+      }
+    }
+
+    function setLevel(level) {
+      state.level = level;
+      els.level68.setAttribute("aria-pressed", level === "6-8");
+      els.level912.setAttribute("aria-pressed", level === "9-12");
+      if (level === "9-12") {
+        els.claim.placeholder = "a nuanced position, interpretation, or controlling idea";
+        els.reason1.placeholder = "reason or line of evidence 1";
+        els.reason2.placeholder = "reason or line of evidence 2";
+        els.reason3.placeholder = "reason or line of evidence 3";
+        els.counterargument.placeholder = "credible opposing view or limitation";
+        els.significance.placeholder = "larger significance, consequence, or insight";
+      } else {
+        els.claim.placeholder = "the position, assertion, angle, or controlling idea";
+        els.reason1.placeholder = "reason 1";
+        els.reason2.placeholder = "reason 2";
+        els.reason3.placeholder = "reason 3";
+        els.counterargument.placeholder = "Although formula: counterargument";
+        els.significance.placeholder = "What/How formula: why the argument matters";
+      }
+      checkThesis();
+    }
+
+    function bindEvents() {
+      els.essayType.addEventListener("change", () => {
+        setEssayType(els.essayType.value);
+        checkThesis();
+      });
+
+      els.formulaType.addEventListener("change", () => {
+        setEssayType(els.essayType.value);
+        checkThesis();
+      });
+
+      [els.assignmentTopic, els.claim, els.reason1, els.reason2, els.reason3, els.counterargument, els.significance, els.formulaType].forEach(input => {
+        input.addEventListener("input", updateDraftPreview);
+        input.addEventListener("change", updateDraftPreview);
+      });
+
+      els.thesisInput.addEventListener("input", () => {
+        updateCounts();
+        checkThesis();
+      });
+
+      document.querySelector("#buildBtn").addEventListener("click", buildThesis);
+      document.querySelector("#checkBtn").addEventListener("click", checkThesis);
+      document.querySelector("#exampleBtn").addEventListener("click", loadExample);
+      document.querySelector("#resetBtn").addEventListener("click", resetSimulator);
+      document.querySelector("#repairBtn").addEventListener("click", coachFix);
+      document.querySelector("#downloadBtn").addEventListener("click", downloadHtml);
+      document.querySelector("#copyBtn").addEventListener("click", copyThesis);
+      els.level68.addEventListener("click", () => setLevel("6-8"));
+      els.level912.addEventListener("click", () => setLevel("9-12"));
+
+      document.querySelectorAll("[data-help]").forEach(button => {
+        button.addEventListener("click", () => {
+          const help = helpContent[button.dataset.help];
+          showModal(help.title, help.body);
+        });
+      });
+
+      document.querySelectorAll("[data-issue]").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".coach-card").forEach(card => card.classList.remove("active"));
+          button.classList.add("active");
+          showRepairModal(button.dataset.issue);
+        });
+      });
+
+      els.formulaBank.addEventListener("click", event => {
+        const button = event.target.closest("[data-formula]");
+        if (!button) return;
+        els.formulaType.value = button.dataset.formula;
+        setEssayType(els.essayType.value);
+        updateDraftPreview();
+        checkThesis();
+      });
+
+      els.starterBank.addEventListener("click", event => {
+        const button = event.target.closest("[data-starter]");
+        if (!button) return;
+        const current = stripPeriod(els.claim.value);
+        els.claim.value = current ? `${button.dataset.starter} ${current}` : button.dataset.starter;
+        updateDraftPreview();
+      });
+
+      document.querySelector("#closeModal").addEventListener("click", closeModal);
+      els.modalBackdrop.addEventListener("click", event => {
+        if (event.target === els.modalBackdrop) closeModal();
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeModal();
+      });
+    }
+
+    setEssayType("narrative", true);
+    bindEvents();
+    renderMeters([]);
+    renderRepairCards();
+    updateCounts();
+    updateDraftPreview();
+  </script>
+
+
+</body></html>
